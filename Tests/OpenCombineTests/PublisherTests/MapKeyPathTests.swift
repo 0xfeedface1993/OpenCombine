@@ -123,7 +123,7 @@ final class MapKeyPathTests: XCTestCase {
                            parentFailure: Never.self,
                            description: "ValueForKey",
                            customMirror: expectedChildren(
-                               ("keyPath", .contains("KeyPath"))
+                               ("keyPath", .contains("Int.doubled"))
                            ),
                            playgroundDescription: "ValueForKey",
                            subscriberIsAlsoSubscription: false,
@@ -133,8 +133,8 @@ final class MapKeyPathTests: XCTestCase {
                            parentFailure: Never.self,
                            description: "ValueForKeys",
                            customMirror: expectedChildren(
-                               ("keyPath0", .contains("KeyPath")),
-                               ("keyPath1", .contains("KeyPath"))
+                               ("keyPath0", .contains("Int.doubled")),
+                               ("keyPath1", .contains("Int.tripled"))
                            ),
                            playgroundDescription: "ValueForKeys",
                            subscriberIsAlsoSubscription: false,
@@ -144,9 +144,9 @@ final class MapKeyPathTests: XCTestCase {
                            parentFailure: Never.self,
                            description: "ValueForKeys",
                            customMirror: expectedChildren(
-                               ("keyPath0", .contains("KeyPath")),
-                               ("keyPath1", .contains("KeyPath")),
-                               ("keyPath2", .contains("KeyPath"))
+                               ("keyPath0", .contains("Int.doubled")),
+                               ("keyPath1", .contains("Int.tripled")),
+                               ("keyPath2", .contains("Int.quadrupled"))
                            ),
                            playgroundDescription: "ValueForKeys",
                            subscriberIsAlsoSubscription: false,
