@@ -151,13 +151,91 @@ extension Publishers {
                 // loc_6a5b1
                 self.demand = .unlimited
             }
+            
+            if count == 0 {
+                finished = true
+                terminated = true
+                downstream.receive(completion: .finished)
+                lock.unlock()
+                return
+            }
 
+            let subscriptions = self.subscriptions.compactMap({ $0 })
+            let buffers = self.buffers.compactMap({ $0 })
             // TODO: Unimplemented
-            lock.unlock()
+            
+            func sendValueToDownstream(_ buffers: [Input?], action: (() -> Void)? = nil) {
+                for value in buffers.compactMap({ $0 }) {
+                    let newDemand = downstream.receive(value)
+                    action?()
+                    if newDemand == .none {
+                        break
+                    }
+                }
+            }
+            
+            func requestSubscriptions(_ subscriptions: [Subscription], demand: Subscribers.Demand) {
+                subscriptions.forEach {
+                    $0.request(demand)
+                }
+            }
+            
+            func validateNonZeroDemand(_ demand: Subscribers.Demand) -> Bool {
+                guard let count = demand.max else {
+                    return false
+                }
+                return count > 0
+            }
+            
+            let bufferFilled = buffers.count > 0
+            self.buffers = Array(repeating: nil, count: count)
+            switch demand {
+            case .unlimited:
+                lock.unlock()
+                if bufferFilled {
+                    sendValueToDownstream(buffers)
+                }
+                requestSubscriptions(subscriptions, demand: demand)
+            default:
+                guard subscriptions.count > 0 else {
+                    self.demand += demand
+                    lock.unlock()
+                    return
+                }
+                
+                guard validateNonZeroDemand(demand) else {
+                    lock.unlock()
+                    return
+                }
+                
+                var remaind = demand
+                if bufferFilled {
+                    sendValueToDownstream(buffers) {
+                        remaind -= 1
+                    }
+                }
+                
+                defer {
+                    lock.unlock()
+                    requestSubscriptions(subscriptions, demand: .max(1))
+                }
+                
+                guard validateNonZeroDemand(remaind) else {
+                    return
+                }
+                
+                self.demand += remaind
+            }
         }
 
         internal func cancel() {
             // TODO: Unimplemented
+            lock.lock()
+            let subscriptions = self.subscriptions
+            self.subscriptions = Array(repeating: nil, count: subscriptions.count)
+            lock.unlock()
+            
+            subscriptions.forEach({ $0?.cancel() })
         }
 
         internal var description: String { return "Merge" }

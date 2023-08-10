@@ -295,7 +295,7 @@ final class SequenceTests: XCTestCase {
             try makePublisher([1, 1, -2, 3]).tryAllSatisfy { $0 > 0 }.result.get()
         )
         XCTAssertTrue(try makePublisher(1 ..< 10).tryAllSatisfy { $0 > 0 }.result.get())
-        XCTAssertTrue(try makePublisher([]).tryAllSatisfy(throwing).result.get())
+        XCTAssertTrue(try makePublisher([Int]()).tryAllSatisfy(throwing).result.get())
         assertThrowsError(
             try makePublisher(1 ..< 10).tryAllSatisfy(throwing).result.get(),
             .oops
@@ -474,7 +474,7 @@ final class SequenceTests: XCTestCase {
                 .count(),
             ResultPublisher(.success(3))
         )
-        XCTAssertEqual(makePublisher([]).count(), Just(0))
+        XCTAssertEqual(makePublisher([Int]()).count(), Just(0))
     }
 
     func testOutputAtIndexOperatorSpecialization() {

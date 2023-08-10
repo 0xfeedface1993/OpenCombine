@@ -15,6 +15,18 @@
 import _Concurrency
 #endif
 
+public protocol Terminable {
+    func onTerminal()
+}
+
+extension Error {
+    func eraseTerminable() {
+        if let terminal = self as? Terminable {
+            terminal.onTerminal()
+        }
+    }
+}
+
 #if canImport(_Concurrency) && compiler(>=5.5) || compiler(>=5.5.1)
 extension Publisher where Failure == Never {
 
@@ -330,11 +342,13 @@ extension AsyncThrowingPublisher.Iterator {
                     case .finished:
                         continuation.resume(returning: nil)
                     case .failure(let error):
+                        error.eraseTerminable()
                         continuation.resume(throwing: error)
                     }
                     remaining.resumeAllWithNil()
                 } else {
                     state = .terminal(completion.failure)
+                    completion.failure?.eraseTerminable()
                     lock.unlock()
                 }
             case .terminal:
@@ -376,6 +390,7 @@ extension AsyncThrowingPublisher.Iterator {
                     continuation.resume(returning: nil)
                 case .terminal(let error?):
                     state = .terminal(nil)
+//                    error.eraseTerminable()
                     lock.unlock()
                     continuation.resume(throwing: error)
                 }

@@ -11,6 +11,10 @@ import Combine
 import OpenCombine
 #endif
 
+import Logging
+
+fileprivate let logger = Logger(label: "merge-test")
+
 /// `CustomSubscription` tracks all the requests and cancellations
 /// in its `history` property.
 ///
@@ -84,6 +88,7 @@ final class CustomSubscription: Subscription, CustomStringConvertible {
     }
 
     func request(_ demand: Subscribers.Demand) {
+        logger.info("[\(self)] store demand \(demand) in history")
         state.do { state in
             state.history.append(.requested(demand))
         }

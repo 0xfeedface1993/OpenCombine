@@ -25,6 +25,9 @@ let package = Package(
         .library(name: "OpenCombineFoundation", targets: ["OpenCombineFoundation"]),
         .library(name: "OpenCombineShim", targets: ["OpenCombineShim"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.5.2")
+    ],
     targets: [
         .target(name: "COpenCombineHelpers"),
         .target(
@@ -69,6 +72,7 @@ let package = Package(
                         condition: .when(platforms: supportedPlatforms.except([.wasi]))),
                 .target(name: "OpenCombineFoundation",
                         condition: .when(platforms: supportedPlatforms.except([.wasi]))),
+                .product(name: "Logging", package: "swift-log")
             ],
             swiftSettings: [
                 .unsafeFlags(["-enable-testing"]),

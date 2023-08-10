@@ -65,6 +65,7 @@ final class MergeTests: XCTestCase {
             for (i, subscription) in subscriptions.enumerated() {
                 XCTAssertEqual(subscription.history,
                                [.requested(.max(1)),
+                                .requested(.max(1)),
                                 .requested(.max(1))],
                                "failure for subscription \(i)")
             }
@@ -327,7 +328,8 @@ final class MergeTests: XCTestCase {
             )
         }
         func testMergeSideReflection<Merger: Publisher>(
-            _ makeMerger: (CustomPublisher) -> Merger
+            _ subscriberIsAlsoSubscription: Bool,
+            makeMerger: (CustomPublisher) -> Merger
         ) throws where Merger.Output == Int, Merger.Failure == TestingError {
             try testReflection(parentInput: Int.self,
                                parentFailure: TestingError.self,
@@ -336,6 +338,7 @@ final class MergeTests: XCTestCase {
                                    ("parentSubscription", .anything)
                                ),
                                playgroundDescription: "Merge",
+                               subscriberIsAlsoSubscription: subscriberIsAlsoSubscription,
                                makeMerger)
             let publisher = CustomPublisher(subscription: CustomSubscription())
             let merger = makeMerger(publisher)
@@ -354,7 +357,7 @@ final class MergeTests: XCTestCase {
         try testMergeSubscriptionReflection(
             publisher.merge(with: publisher) as Publishers.Merge
         )
-        try testMergeSideReflection {
+        try testMergeSideReflection(false) {
             $0.merge(with: publisher) as Publishers.Merge
         }
 
@@ -362,7 +365,7 @@ final class MergeTests: XCTestCase {
             publisher.merge(with: publisher,
                             publisher) as Publishers.Merge3
         )
-        try testMergeSideReflection {
+        try testMergeSideReflection(false) {
             $0.merge(with: publisher,
                      publisher) as Publishers.Merge3
         }
@@ -372,7 +375,7 @@ final class MergeTests: XCTestCase {
                             publisher,
                             publisher) as Publishers.Merge4
         )
-        try testMergeSideReflection {
+        try testMergeSideReflection(false) {
             $0.merge(with: publisher,
                      publisher,
                      publisher) as Publishers.Merge4
@@ -384,7 +387,7 @@ final class MergeTests: XCTestCase {
                             publisher,
                             publisher) as Publishers.Merge5
         )
-        try testMergeSideReflection {
+        try testMergeSideReflection(false) {
             $0.merge(with: publisher,
                      publisher,
                      publisher,
@@ -398,7 +401,7 @@ final class MergeTests: XCTestCase {
                             publisher,
                             publisher) as Publishers.Merge6
         )
-        try testMergeSideReflection {
+        try testMergeSideReflection(false) {
             $0.merge(with: publisher,
                      publisher,
                      publisher,
@@ -414,7 +417,7 @@ final class MergeTests: XCTestCase {
                             publisher,
                             publisher) as Publishers.Merge7
         )
-        try testMergeSideReflection {
+        try testMergeSideReflection(false) {
             $0.merge(with: publisher,
                      publisher,
                      publisher,
@@ -432,7 +435,7 @@ final class MergeTests: XCTestCase {
                             publisher,
                             publisher) as Publishers.Merge8
         )
-        try testMergeSideReflection {
+        try testMergeSideReflection(false) {
             $0.merge(with: publisher,
                      publisher,
                      publisher,
@@ -445,7 +448,7 @@ final class MergeTests: XCTestCase {
         try testMergeSubscriptionReflection(
             publisher.merge(with: publisher) as Publishers.MergeMany
         )
-        try testMergeSideReflection {
+        try testMergeSideReflection(false) {
             $0.merge(with: $0) as Publishers.MergeMany
         }
     }

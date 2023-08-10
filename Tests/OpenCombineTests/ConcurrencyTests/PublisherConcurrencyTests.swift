@@ -17,6 +17,8 @@ import Combine
 import OpenCombine
 #endif
 
+import COpenCombineHelpers
+
 // swiftlint:disable:next line_length
 #if !os(Windows) && !WASI && (canImport(_Concurrency) && compiler(>=5.5) || compiler(>=5.5.1)) // TEST_DISCOVERY_CONDITION
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
@@ -1029,7 +1031,9 @@ private actor IteratorWrapper<Iterator: AsyncIteratorProtocol> {
     }
 }
 
-private final class RefError: Error {
+private final class RefError: Error, Terminable {
+    private var terminated = false
+    private let lock = __UnfairLock.allocate()
 
     private let onDeinit: () -> Void
 
@@ -1037,8 +1041,18 @@ private final class RefError: Error {
         self.onDeinit = onDeinit
     }
 
-    deinit {
+    func onTerminal() {
         onDeinit()
+        lock.lock()
+        terminated = true
+        lock.unlock()
+    }
+    
+    deinit {
+        if !terminated {
+            onDeinit()
+        }
+        lock.deallocate()
     }
 }
 
